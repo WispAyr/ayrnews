@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AyrNews — Ayrshire News Aggregator</title>
+<meta name="description" content="Local news aggregator for Ayrshire, Scotland. Curated from BBC Scotland, The Guardian, STV, and more.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* Dark theme (default) */
+  --bg: #0f1117;
+  --bg-card: #1a1d27;
+  --bg-card-hover: #222632;
+  --bg-header: rgba(15, 17, 23, 0.85);
+  --bg-pill: rgba(255,255,255,0.08);
+  --bg-pill-active: #3b82f6;
+  --text: #e4e6eb;
+  --text-secondary: #8b8fa3;
+  --text-muted: #5a5e72;
+  --border: rgba(255,255,255,0.06);
+  --accent: #3b82f6;
+  --accent-green: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-red: #ef4444;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+[data-theme="light"] {
+  --bg: #f5f6fa;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f0f1f5;
+  --bg-header: rgba(245, 246, 250, 0.9);
+  --bg-pill: rgba(0,0,0,0.06);
+  --bg-pill-active: #3b82f6;
+  --text: #1a1d27;
+  --text-secondary: #5a5e72;
+  --text-muted: #8b8fa3;
+  --border: rgba(0,0,0,0.08);
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ===== Header ===== */
+.header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg-header);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 1.5rem;
+}
+.header-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 64px; gap: 1rem;
+}
+.brand {
+  display: flex; align-items: center; gap: 0.6rem;
+  font-weight: 700; font-size: 1.25rem;
+  color: var(--text);
+  text-decoration: none;
+}
+.brand:hover { text-decoration: none; }
+.brand-icon { font-size: 1.5rem; }
+.brand-sub {
+  font-size: 0.7rem; font-weight: 500;
+  color: var(--text-muted); letter-spacing: 0.02em;
+}
+.header-right { display: flex; align-items: center; gap: 0.75rem; }
+
+.wispayr-link {
+  font-size: 0.8rem; color: var(--text-secondary);
+  padding: 0.35rem 0.75rem; border-radius: 8px;
+  background: var(--bg-pill); transition: all 0.2s;
+}
+.wispayr-link:hover { background: var(--accent); color: #fff; text-decoration: none; }
+
+.theme-toggle {
+  background: var(--bg-pill); border: none; cursor: pointer;
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; transition: all 0.2s;
+  color: var(--text-secondary);
+}
+.theme-toggle:hover { background: var(--accent); color: #fff; }
+
+/* ===== Stats Bar ===== */
+.stats-bar {
+  max-width: 1200px; margin: 1rem auto 0;
+  padding: 0 1.5rem;
+  display: flex; gap: 1rem; flex-wrap: wrap;
+  align-items: center;
+}
+.stat-chip {
+  display: flex; align-items: center; gap: 0.4rem;
+  background: var(--bg-card); border-radius: 10px;
+  padding: 0.4rem 0.8rem; font-size: 0.8rem;
+  border: 1px solid var(--border);
+}
+.stat-chip .num { font-weight: 700; color: var(--accent); }
+.stat-chip .lbl { color: var(--text-secondary); }
+.refresh-info {
+  margin-left: auto; font-size: 0.75rem;
+  color: var(--text-muted); display: flex;
+  align-items: center; gap: 0.4rem;
+}
+.pulse { display: inline-block; width: 8px; height: 8px; background: var(--accent-green); border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* ===== Filters ===== */
+.filters {
+  max-width: 1200px; margin: 1.25rem auto 0;
+  padding: 0 1.5rem;
+  display: flex; gap: 0.5rem; flex-wrap: wrap;
+  align-items: center;
+}
+.filter-btn {
+  background: var(--bg-pill); border: 1px solid transparent;
+  color: var(--text-secondary); cursor: pointer;
+  padding: 0.45rem 1rem; border-radius: 10px;
+  font-family: var(--font); font-size: 0.85rem; font-weight: 500;
+  transition: all 0.2s;
+}
+.filter-btn:hover { background: var(--bg-card-hover); color: var(--text); }
+.filter-btn.active {
+  background: var(--bg-pill-active); color: #fff;
+  border-color: var(--accent);
+}
+
+.search-box {
+  margin-left: auto; position: relative;
+}
+.search-box input {
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text); font-family: var(--font); font-size: 0.85rem;
+  padding: 0.45rem 0.8rem 0.45rem 2.2rem;
+  border-radius: 10px; width: 220px;
+  transition: all 0.2s;
+}
+.search-box input:focus { outline: none; border-color: var(--accent); width: 280px; }
+.search-box::before {
+  content: '🔍'; position: absolute; left: 0.65rem; top: 50%;
+  transform: translateY(-50%); font-size: 0.85rem; pointer-events: none;
+}
+
+/* ===== Grid ===== */
+.grid {
+  max-width: 1200px; margin: 1.5rem auto 3rem;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.25rem;
+}
+
+/* ===== Card ===== */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.25s;
+  display: flex; flex-direction: column;
+}
+.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: var(--accent); }
+
+.card-img {
+  width: 100%; height: 180px; object-fit: cover;
+  background: var(--bg-pill);
+}
+.card-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
+
+.card-meta {
+  display: flex; align-items: center; gap: 0.5rem;
+  margin-bottom: 0.6rem; flex-wrap: wrap;
+}
+.badge {
+  font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.04em; padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+}
+.badge-local { background: rgba(16,185,129,0.15); color: var(--accent-green); }
+.badge-scotland { background: rgba(59,130,246,0.15); color: var(--accent); }
+.badge-uk { background: rgba(245,158,11,0.15); color: var(--accent-amber); }
+
+.card-source { font-size: 0.78rem; color: var(--text-secondary); font-weight: 500; }
+.card-dot { color: var(--text-muted); font-size: 0.6rem; }
+.card-time { font-size: 0.75rem; color: var(--text-muted); }
+
+.card-title {
+  font-size: 1.05rem; font-weight: 650; line-height: 1.35;
+  margin-bottom: 0.5rem; color: var(--text);
+}
+.card-title a { color: inherit; }
+.card-title a:hover { color: var(--accent); text-decoration: none; }
+
+.card-summary {
+  font-size: 0.88rem; color: var(--text-secondary);
+  line-height: 1.55; flex: 1;
+  display: -webkit-box; -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+
+.card-footer {
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.card-read {
+  font-size: 0.8rem; font-weight: 600; color: var(--accent);
+  display: flex; align-items: center; gap: 0.3rem;
+}
+.card-read:hover { text-decoration: none; opacity: 0.8; }
+.card-author { font-size: 0.75rem; color: var(--text-muted); }
+
+/* ===== Empty / Loading ===== */
+.loading, .empty {
+  text-align: center; padding: 4rem 1rem;
+  color: var(--text-muted); font-size: 1.1rem;
+}
+.loading-spinner {
+  display: inline-block; width: 32px; height: 32px;
+  border: 3px solid var(--border); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== Footer ===== */
+.footer {
+  text-align: center; padding: 2rem 1rem;
+  color: var(--text-muted); font-size: 0.8rem;
+  border-top: 1px solid var(--border);
+}
+.footer a { color: var(--text-secondary); }
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .grid { grid-template-columns: 1fr; gap: 1rem; padding: 0 1rem; }
+  .header-inner { height: 56px; }
+  .brand { font-size: 1.1rem; }
+  .brand-sub { display: none; }
+  .wispayr-link { display: none; }
+  .search-box input { width: 160px; }
+  .search-box input:focus { width: 200px; }
+  .stats-bar, .filters { padding: 0 1rem; }
+  .stat-chip { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
+}
+
+@media (max-width: 480px) {
+  .search-box { margin-left: 0; width: 100%; order: 10; }
+  .search-box input { width: 100%; }
+  .search-box input:focus { width: 100%; }
+  .filters { gap: 0.4rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-inner">
+    <a href="/" class="brand">
+      <span class="brand-icon">📰</span>
+      <div>
+        AyrNews
+        <div class="brand-sub">Ayrshire News Aggregator</div>
+      </div>
+    </a>
+    <div class="header-right">
+      <a href="https://ayrshire.wispayr.online" class="wispayr-link" target="_blank">← WispAyr</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+    </div>
+  </div>
+</header>
+
+<!-- Stats -->
+<div class="stats-bar" id="statsBar"></div>
+
+<!-- Filters -->
+<div class="filters">
+  <button class="filter-btn active" data-cat="all">All</button>
+  <button class="filter-btn" data-cat="local">🏠 Local</button>
+  <button class="filter-btn" data-cat="scotland">🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland</button>
+  <button class="filter-btn" data-cat="uk">🇬🇧 UK</button>
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search articles...">
+  </div>
+</div>
+
+<!-- Articles Grid -->
+<div class="grid" id="articlesGrid">
+  <div class="loading" style="grid-column: 1/-1">
+    <div class="loading-spinner"></div>
+    <div>Loading Ayrshire news…</div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+  <p>AyrNews — Aggregated from BBC Scotland, The Guardian, STV, Daily Record, Sky News &amp; more.</p>
+  <p style="margin-top:0.4rem">Part of <a href="https://ayrshire.wispayr.online" target="_blank">WispAyr Ayrshire Tools</a> · Auto-refreshes every 5 minutes</p>
+</footer>
+
+<script>
+// ===== State =====
+let articles = [];
+let currentCategory = 'all';
+let searchQuery = '';
+let refreshTimer = null;
+
+// ===== Theme =====
+function getTheme() {
+  return localStorage.getItem('ayrnews-theme') || 'dark';
+}
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.querySelector('.theme-toggle').textContent = t === 'dark' ? '☀️' : '🌙';
+}
+function toggleTheme() {
+  const t = getTheme() === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('ayrnews-theme', t);
+  applyTheme(t);
+}
+applyTheme(getTheme());
+
+// ===== Time Ago =====
+function timeAgo(isoStr) {
+  if (!isoStr) return '';
+  const d = new Date(isoStr);
+  const now = new Date();
+  const secs = Math.floor((now - d) / 1000);
+  if (secs < 60) return 'just now';
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days === 1) return 'yesterday';
+  if (days < 7) return `${days}d ago`;
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+
+// ===== Badge =====
+function badgeHTML(cat, isLocal) {
+  if (isLocal) return '<span class="badge badge-local">Local</span>';
+  if (cat === 'scotland') return '<span class="badge badge-scotland">Scotland</span>';
+  if (cat === 'uk') return '<span class="badge badge-uk">UK</span>';
+  return '<span class="badge badge-scotland">Scotland</span>';
+}
+
+// ===== Card HTML =====
+function cardHTML(a) {
+  const imgPart = a.image_url
+    ? `<img class="card-img" src="${escHtml(a.image_url)}" alt="" loading="lazy" onerror="this.style.display='none'">`
+    : '';
+  return `
+  <article class="card">
+    ${imgPart}
+    <div class="card-body">
+      <div class="card-meta">
+        ${badgeHTML(a.category, a.is_local)}
+        <span class="card-source">${escHtml(a.source)}</span>
+        <span class="card-dot">•</span>
+        <span class="card-time">${timeAgo(a.published_at)}</span>
+      </div>
+      <h3 class="card-title"><a href="${escHtml(a.link)}" target="_blank" rel="noopener">${escHtml(a.title)}</a></h3>
+      <p class="card-summary">${escHtml(a.summary)}</p>
+    </div>
+    <div class="card-footer">
+      <a class="card-read" href="${escHtml(a.link)}" target="_blank" rel="noopener">Read more →</a>
+      <span class="card-author">${escHtml(a.author || a.source)}</span>
+    </div>
+  </article>`;
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ===== Render =====
+function render() {
+  const grid = document.getElementById('articlesGrid');
+  let filtered = articles;
+
+  if (currentCategory !== 'all') {
+    if (currentCategory === 'local') {
+      filtered = filtered.filter(a => a.is_local);
+    } else {
+      filtered = filtered.filter(a => a.category === currentCategory || (currentCategory === 'scotland' && a.is_local));
+    }
+  }
+
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter(a =>
+      (a.title || '').toLowerCase().includes(q) ||
+      (a.summary || '').toLowerCase().includes(q) ||
+      (a.source || '').toLowerCase().includes(q)
+    );
+  }
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1">No articles found. Try a different filter or check back soon.</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(cardHTML).join('');
+}
+
+// ===== Stats =====
+function renderStats(stats) {
+  const bar = document.getElementById('statsBar');
+  const lastRefresh = stats.last_refresh ? timeAgo(stats.last_refresh) : 'never';
+  bar.innerHTML = `
+    <div class="stat-chip"><span class="num">${stats.total || 0}</span><span class="lbl">articles</span></div>
+    <div class="stat-chip"><span class="num">${stats.local || 0}</span><span class="lbl">local</span></div>
+    <div class="stat-chip"><span class="num">${stats.scotland || 0}</span><span class="lbl">Scotland</span></div>
+    <div class="stat-chip"><span class="num">${stats.uk || 0}</span><span class="lbl">UK</span></div>
+    <div class="refresh-info"><span class="pulse"></span> Updated ${lastRefresh}</div>
+  `;
+}
+
+// ===== Fetch =====
+async function fetchArticles() {
+  try {
+    const resp = await fetch('/api/articles?limit=100');
+    const data = await resp.json();
+    articles = data.articles || [];
+    render();
+  } catch (e) {
+    console.error('Failed to fetch articles:', e);
+  }
+}
+
+async function fetchStats() {
+  try {
+    const resp = await fetch('/api/stats');
+    const data = await resp.json();
+    renderStats(data);
+  } catch (e) {
+    console.error('Failed to fetch stats:', e);
+  }
+}
+
+async function refresh() {
+  await Promise.all([fetchArticles(), fetchStats()]);
+}
+
+// ===== Events =====
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentCategory = btn.dataset.cat;
+    render();
+  });
+});
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  searchQuery = e.target.value.trim();
+  render();
+});
+
+// ===== Init =====
+refresh();
+// Auto-refresh every 5 minutes
+setInterval(refresh, 5 * 60 * 1000);
+</script>
+</body>
+</html>
