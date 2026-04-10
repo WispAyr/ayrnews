@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AyrNews — Ayrshire News Hub</title>
+<meta name="description" content="Local news hub for Ayrshire, Scotland. Live weather, warnings, and curated news from BBC Scotland, The Guardian, STV, and more.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/WispAyr/wispayr-design@main/css/wispayr.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ═══ Enterprise HUD Override — shared WispAyr token remapping ═══ */
+:root, [data-theme="dark"] {
+  --w-bg: #060a12;
+  --w-bg-card: rgba(16,24,40,.75);
+  --w-bg-elevated: rgba(22,30,48,.8);
+  --w-bg-blue: rgba(34,211,238,.06);
+  --w-bg-cyan: rgba(34,211,238,.06);
+  --w-bg-green: rgba(16,185,129,.06);
+  --w-bg-orange: rgba(245,158,11,.06);
+  --w-bg-red: rgba(239,68,68,.06);
+  --w-bg-purple: rgba(139,92,246,.06);
+  --w-border: rgba(51,65,85,.25);
+  --w-text: #e2e8f0;
+  --w-text-muted: #64748b;
+  --w-text-light: #334155;
+  --w-blue: #22d3ee;
+  --w-blue-dark: #0891b2;
+  --w-blue-light: #67e8f9;
+  --w-cyan: #22d3ee;
+  --w-green: #10b981;
+  --w-green-light: #34d399;
+  --w-orange: #f59e0b;
+  --w-red: #ef4444;
+  --w-purple: #a78bfa;
+  --w-radius: 6px;
+  --w-radius-sm: 4px;
+  --w-radius-xs: 4px;
+  --w-shadow-sm: 0 1px 2px rgba(0,0,0,.3);
+  --w-shadow-md: 0 4px 12px rgba(0,0,0,.4);
+  --w-shadow-lg: 0 8px 32px rgba(0,0,0,.5);
+  --w-transition: .2s ease;
+  --mono: 'JetBrains Mono','SF Mono','Fira Code','Consolas',monospace;
+  --sans: 'Space Grotesk','Inter',-apple-system,sans-serif;
+}
+[data-theme="light"] {
+  --w-bg: #f3f4f8; --w-bg-card: #ffffff; --w-bg-elevated: #f7f8fc;
+  --w-border: rgba(0,0,0,.07); --w-text: #12131a; --w-text-muted: #5c6078;
+  --w-text-light: #9094a6; --w-blue: #0891b2; --w-radius: 6px; --w-radius-sm: 4px; --w-radius-xs: 4px;
+}
+
+/* Local aliases mapping to shared tokens */
+:root, [data-theme="dark"] {
+  --bg: var(--w-bg);
+  --bg-surface: rgba(12,18,30,.85);
+  --bg-card: var(--w-bg-card);
+  --bg-card-hover: var(--w-bg-elevated);
+  --bg-header: rgba(6,10,18,.92);
+  --bg-pill: rgba(255,255,255,0.04);
+  --bg-pill-active: rgba(34,211,238,.12);
+  --text: var(--w-text);
+  --text-secondary: var(--w-text-muted);
+  --text-muted: var(--w-text-light);
+  --border: var(--w-border);
+  --border-bright: rgba(71,85,105,.4);
+  --accent: var(--w-cyan);
+  --accent-green: var(--w-green);
+  --accent-amber: var(--w-orange);
+  --accent-red: var(--w-red);
+  --accent-cyan: var(--w-cyan);
+  --shadow: var(--w-shadow-sm);
+  --shadow-lg: var(--w-shadow-lg);
+  --radius: var(--w-radius);
+  --radius-sm: var(--w-radius-sm);
+  --max-w: 1280px;
+}
+[data-theme="light"] {
+  --bg: var(--w-bg); --bg-surface: #ecedf2; --bg-card: var(--w-bg-card);
+  --bg-card-hover: var(--w-bg-elevated); --bg-header: rgba(243,244,248,0.92);
+  --bg-pill: rgba(0,0,0,0.05); --bg-pill-active: rgba(34,211,238,.1);
+  --text: var(--w-text); --text-secondary: var(--w-text-muted); --text-muted: var(--w-text-light);
+  --border: var(--w-border); --border-bright: rgba(0,0,0,.12);
+  --shadow: var(--w-shadow-sm); --shadow-lg: var(--w-shadow-lg);
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans); background: var(--bg); color: var(--text);
+  min-height: 100vh; -webkit-font-smoothing: antialiased;
+  background-image: linear-gradient(rgba(34,211,238,.015) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,.015) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: none; color: #67e8f9; }
+
+/* Header enterprise override */
+.w-header { backdrop-filter: blur(20px) !important; }
+[data-theme="dark"] .w-header { background: rgba(6,10,18,.92) !important; border-color: rgba(51,65,85,.25) !important; }
+
+/* Warning Banner */
+.warning-banner { background: rgba(127,29,29,.4); border-bottom: 1px solid rgba(239,68,68,.2); color: #fca5a5; padding:0; font-family:var(--mono); font-size:11px; font-weight:500; overflow:hidden; display:none; letter-spacing:.3px; }
+.warning-banner.active { display: block; }
+.warning-banner .banner-track { display:flex; align-items:center; gap:1.5rem; padding:8px 1.5rem; white-space:nowrap; animation: scroll-left 30s linear infinite; }
+.warning-banner .banner-track:hover { animation-play-state: paused; }
+.warning-banner a { color: #fca5a5; text-decoration: underline; }
+@keyframes scroll-left { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+.warning-banner.warning-red { background: rgba(153,27,27,.5); border-color: rgba(239,68,68,.3); }
+
+/* (Custom header removed — using shared WispAyr nav) */
+
+/* Context Bar — instrument readout */
+.context-bar { background:var(--bg-surface); border-bottom:1px solid var(--border); padding:8px 1.5rem; overflow-x:auto; }
+.context-inner { max-width:var(--max-w); margin:0 auto; display:flex; align-items:center; gap:1rem; min-width:max-content; }
+.ctx-item { display:flex; align-items:center; gap:4px; font-family:var(--mono); font-size:11px; color:var(--text-secondary); white-space:nowrap; letter-spacing:.2px; }
+.ctx-item .ctx-icon { font-size:.85rem; }
+.ctx-item .ctx-value { font-weight:600; color:var(--text); }
+.ctx-item .ctx-label { color:var(--text-muted); font-size:10px; }
+.ctx-sep { width:1px; height:14px; background:var(--border); flex-shrink:0; }
+
+/* Toolbar */
+.toolbar { max-width:var(--max-w); margin:12px auto 0; padding:0 1.5rem; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.stat-chip { display:flex; align-items:center; gap:4px; background:var(--bg-card); border-radius:var(--radius-sm); padding:4px 10px; font-family:var(--mono); font-size:11px; border:1px solid var(--border); letter-spacing:.2px; }
+.stat-chip .num { font-weight:600; color:var(--accent); }
+.stat-chip .lbl { color:var(--text-secondary); }
+.toolbar-spacer { flex:1; }
+.filter-btn { background:var(--bg-pill); border:1px solid var(--border); color:var(--text-secondary); cursor:pointer; padding:4px 12px; border-radius:var(--radius-sm); font-family:var(--mono); font-size:11px; font-weight:500; transition:all .2s; letter-spacing:.3px; text-transform:uppercase; }
+.filter-btn:hover { border-color:var(--border-bright); color:var(--text); }
+.filter-btn.active { background:var(--bg-pill-active); color:var(--accent); border-color:rgba(34,211,238,.2); }
+.search-box { position:relative; }
+.search-box input { background:var(--bg-card); border:1px solid var(--border); color:var(--text); font-family:var(--mono); font-size:11px; padding:5px 10px 5px 28px; border-radius:var(--radius-sm); width:180px; transition:all .2s; letter-spacing:.2px; }
+.search-box input:focus { outline:none; border-color:var(--accent); width:240px; }
+.search-box::before { content:'\1F50D'; position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:.7rem; pointer-events:none; }
+.refresh-info { font-family:var(--mono); font-size:10px; color:var(--text-muted); display:flex; align-items:center; gap:4px; letter-spacing:.3px; }
+.pulse { display:inline-block; width:5px; height:5px; background:var(--accent-green); border-radius:50%; box-shadow:0 0 6px rgba(16,185,129,.5); animation:pulse 2.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* Grid */
+.grid { max-width:var(--max-w); margin:14px auto 3rem; padding:0 1.5rem; display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:10px; }
+
+/* Hero card */
+.card-hero { grid-column:1/-1; display:grid; grid-template-columns:1fr 1fr; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; transition:border-color .2s; position:relative; }
+.card-hero::before,.card-hero::after { content:''; position:absolute; width:10px; height:10px; pointer-events:none; opacity:.2; }
+.card-hero::before { top:5px; left:5px; border-top:1px solid var(--accent); border-left:1px solid var(--accent); }
+.card-hero::after { bottom:5px; right:5px; border-bottom:1px solid var(--accent); border-right:1px solid var(--accent); }
+.card-hero:hover { border-color:var(--border-bright); }
+.card-hero .hero-img { width:100%; height:100%; min-height:260px; object-fit:cover; }
+.card-hero .hero-body { padding:1.5rem; display:flex; flex-direction:column; justify-content:center; }
+.card-hero .card-title { font-size:1.25rem; line-height:1.3; margin-bottom:.5rem; }
+.card-hero .card-summary { -webkit-line-clamp:4; font-size:.88rem; }
+
+/* Card — HUD panel */
+.card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; transition:border-color .2s, transform .2s; display:flex; flex-direction:column; position:relative; }
+.card::before,.card::after { content:''; position:absolute; width:8px; height:8px; pointer-events:none; opacity:0; transition:opacity .2s; }
+.card::before { top:4px; left:4px; border-top:1px solid var(--accent); border-left:1px solid var(--accent); }
+.card::after { bottom:4px; right:4px; border-bottom:1px solid var(--accent); border-right:1px solid var(--accent); }
+.card:hover { transform:translateY(-2px); border-color:var(--border-bright); }
+.card:hover::before,.card:hover::after { opacity:.3; }
+.card-img { width:100%; height:160px; object-fit:cover; background:var(--bg-pill); }
+.card-body { padding:14px; flex:1; display:flex; flex-direction:column; }
+.card-meta { display:flex; align-items:center; gap:6px; margin-bottom:6px; flex-wrap:wrap; }
+.badge { font-family:var(--mono); font-size:9px; font-weight:500; text-transform:uppercase; letter-spacing:1px; padding:2px 6px; border-radius:2px; }
+.badge-local { background:rgba(16,185,129,.1); color:var(--accent-green); border:1px solid rgba(16,185,129,.15); }
+.badge-scotland { background:rgba(59,130,246,.08); color:#60a5fa; border:1px solid rgba(59,130,246,.12); }
+.badge-uk { background:rgba(245,158,11,.08); color:var(--accent-amber); border:1px solid rgba(245,158,11,.12); }
+.card-source { font-family:var(--mono); font-size:10px; color:var(--text-secondary); font-weight:500; letter-spacing:.2px; }
+.card-dot { color:var(--text-muted); font-size:8px; }
+.card-time { font-family:var(--mono); font-size:10px; color:var(--text-muted); }
+.card-title { font-family:var(--sans); font-size:.95rem; font-weight:600; line-height:1.35; margin-bottom:6px; color:var(--text); }
+.card-title a { color:inherit; }
+.card-title a:hover { color:var(--accent); text-decoration:none; }
+.card-summary { font-size:.82rem; color:var(--text-secondary); line-height:1.55; flex:1; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.card-footer { padding:8px 14px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.card-read { font-family:var(--mono); font-size:10px; font-weight:500; color:var(--accent); display:flex; align-items:center; gap:4px; letter-spacing:.5px; text-transform:uppercase; }
+.card-read:hover { text-decoration:none; color:#67e8f9; }
+.card-author { font-family:var(--mono); font-size:10px; color:var(--text-muted); }
+
+/* Loading / Empty */
+.loading,.empty { text-align:center; padding:4rem 1rem; color:var(--text-muted); font-family:var(--mono); font-size:12px; letter-spacing:.5px; }
+.loading-spinner { display:inline-block; width:24px; height:24px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; margin-bottom:.8rem; }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+/* Footer */
+.footer { text-align:center; padding:1.5rem 1rem; color:var(--text-muted); font-family:var(--mono); font-size:10px; border-top:1px solid var(--border); letter-spacing:.3px; }
+.footer a { color:var(--text-secondary); }
+
+/* Responsive */
+@media (max-width:900px) { .card-hero{grid-template-columns:1fr} .card-hero .hero-img{min-height:180px;height:180px} }
+@media (max-width:768px) { .grid{grid-template-columns:1fr;gap:8px;padding:0 1rem} .header-inner{height:46px} .brand{font-size:.9rem} .brand-sub{display:none} .wispayr-link{display:none} .toolbar{padding:0 1rem;gap:6px} .search-box input{width:140px} .search-box input:focus{width:170px} .stat-chip{padding:3px 6px;font-size:10px} .context-bar{padding:6px 1rem} }
+@media (max-width:480px) { .search-box{order:10;width:100%} .search-box input,.search-box input:focus{width:100%} .context-inner{gap:.6rem} }
+</style>
+    <script src="https://analytics.wispayr.online/beacon.js" data-site="ayrshire-news" async></script>
+</head>
+<body>
+
+<!-- Warning Banner -->
+<div class="warning-banner" id="warningBanner">
+  <div class="banner-track" id="warningTrack"></div>
+</div>
+
+<!-- Shared WispAyr header (auto-injected by wispayr.js) -->
+<header class="w-header"></header>
+
+<!-- Context Bar -->
+<div class="context-bar" id="contextBar" style="display:none">
+  <div class="context-inner" id="contextInner"></div>
+</div>
+
+<!-- Toolbar: stats + filters + search -->
+<div class="toolbar">
+  <div id="statsChips"></div>
+  <div class="toolbar-spacer"></div>
+  <button class="filter-btn active" data-cat="all">All</button>
+  <button class="filter-btn" data-cat="local">Local</button>
+  <button class="filter-btn" data-cat="scotland">Scotland</button>
+  <button class="filter-btn" data-cat="uk">UK</button>
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search articles...">
+  </div>
+  <div class="refresh-info" id="refreshInfo"></div>
+</div>
+
+<!-- Articles Grid -->
+<div class="grid" id="articlesGrid">
+  <div class="loading" style="grid-column: 1/-1">
+    <div class="loading-spinner"></div>
+    <div>Loading Ayrshire news...</div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+  <p>AyrNews v2 — BBC Scotland, The Guardian, STV, Daily Record, Sky News & more.</p>
+  <p style="margin-top:0.3rem">Part of <a href="https://ayrshire.wispayr.online" target="_blank">WispAyr Ayrshire</a> &middot; Powered by <a href="http://142.202.191.208:3882" target="_blank">Siphon</a> &middot; Auto-refreshes every 5 min</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/gh/WispAyr/wispayr-design@main/js/wispayr.js"></script>
+<script>
+// Init shared header + theme
+if (window.WispAyr) WispAyr.init('news');
+
+// ===== State =====
+let articles = [];
+let currentCategory = 'all';
+let searchQuery = '';
+
+// ===== WMO weather code to description + icon =====
+const WMO = {
+  0: ['Clear sky', '\u2600\uFE0F'], 1: ['Mainly clear', '\uD83C\uDF24\uFE0F'], 2: ['Partly cloudy', '\u26C5'],
+  3: ['Overcast', '\u2601\uFE0F'], 45: ['Fog', '\uD83C\uDF2B\uFE0F'], 48: ['Rime fog', '\uD83C\uDF2B\uFE0F'],
+  51: ['Light drizzle', '\uD83C\uDF26\uFE0F'], 53: ['Drizzle', '\uD83C\uDF26\uFE0F'], 55: ['Dense drizzle', '\uD83C\uDF27\uFE0F'],
+  56: ['Freezing drizzle', '\u2744\uFE0F'], 57: ['Heavy freezing drizzle', '\u2744\uFE0F'],
+  61: ['Light rain', '\uD83C\uDF27\uFE0F'], 63: ['Rain', '\uD83C\uDF27\uFE0F'], 65: ['Heavy rain', '\uD83C\uDF27\uFE0F'],
+  66: ['Freezing rain', '\u2744\uFE0F'], 67: ['Heavy freezing rain', '\u2744\uFE0F'],
+  71: ['Light snow', '\uD83C\uDF28\uFE0F'], 73: ['Snow', '\uD83C\uDF28\uFE0F'], 75: ['Heavy snow', '\uD83C\uDF28\uFE0F'],
+  77: ['Snow grains', '\uD83C\uDF28\uFE0F'], 80: ['Light showers', '\uD83C\uDF26\uFE0F'],
+  81: ['Showers', '\uD83C\uDF27\uFE0F'], 82: ['Heavy showers', '\u26C8\uFE0F'],
+  85: ['Light snow showers', '\uD83C\uDF28\uFE0F'], 86: ['Snow showers', '\uD83C\uDF28\uFE0F'],
+  95: ['Thunderstorm', '\u26C8\uFE0F'], 96: ['Thunderstorm + hail', '\u26C8\uFE0F'], 99: ['Severe thunderstorm', '\u26C8\uFE0F'],
+};
+
+function weatherDesc(code) { return WMO[code] || ['Unknown', '\u2601\uFE0F']; }
+
+// ===== Time Ago =====
+function timeAgo(isoStr) {
+  if (!isoStr) return '';
+  const d = new Date(isoStr);
+  const now = new Date();
+  const secs = Math.floor((now - d) / 1000);
+  if (secs < 60) return 'just now';
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return mins + 'm ago';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + 'h ago';
+  const days = Math.floor(hrs / 24);
+  if (days === 1) return 'yesterday';
+  if (days < 7) return days + 'd ago';
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ===== Badge =====
+function badgeHTML(cat, isLocal) {
+  if (isLocal) return '<span class="badge badge-local">Local</span>';
+  if (cat === 'scotland') return '<span class="badge badge-scotland">Scotland</span>';
+  if (cat === 'uk') return '<span class="badge badge-uk">UK</span>';
+  return '<span class="badge badge-scotland">Scotland</span>';
+}
+
+// ===== Hero Card =====
+function heroCardHTML(a) {
+  return '<article class="card-hero">' +
+    '<img class="hero-img" src="' + escHtml(a.image_url) + '" alt="" loading="eager" onerror="this.style.display=\'none\'">' +
+    '<div class="hero-body">' +
+      '<div class="card-meta">' +
+        badgeHTML(a.category, a.is_local) +
+        '<span class="card-source">' + escHtml(a.source) + '</span>' +
+        '<span class="card-dot">\u2022</span>' +
+        '<span class="card-time">' + timeAgo(a.published_at) + '</span>' +
+      '</div>' +
+      '<h2 class="card-title"><a href="' + escHtml(a.link) + '" target="_blank" rel="noopener">' + escHtml(a.title) + '</a></h2>' +
+      '<p class="card-summary">' + escHtml(a.summary) + '</p>' +
+      '<div style="margin-top:1rem"><a class="card-read" href="' + escHtml(a.link) + '" target="_blank" rel="noopener">Read full story \u2192</a></div>' +
+    '</div>' +
+  '</article>';
+}
+
+// ===== Regular Card =====
+function cardHTML(a) {
+  const imgPart = a.image_url
+    ? '<img class="card-img" src="' + escHtml(a.image_url) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">'
+    : '';
+  return '<article class="card">' +
+    imgPart +
+    '<div class="card-body">' +
+      '<div class="card-meta">' +
+        badgeHTML(a.category, a.is_local) +
+        '<span class="card-source">' + escHtml(a.source) + '</span>' +
+        '<span class="card-dot">\u2022</span>' +
+        '<span class="card-time">' + timeAgo(a.published_at) + '</span>' +
+      '</div>' +
+      '<h3 class="card-title"><a href="' + escHtml(a.link) + '" target="_blank" rel="noopener">' + escHtml(a.title) + '</a></h3>' +
+      '<p class="card-summary">' + escHtml(a.summary) + '</p>' +
+    '</div>' +
+    '<div class="card-footer">' +
+      '<a class="card-read" href="' + escHtml(a.link) + '" target="_blank" rel="noopener">Read more \u2192</a>' +
+      '<span class="card-author">' + escHtml(a.author || a.source) + '</span>' +
+    '</div>' +
+  '</article>';
+}
+
+// ===== Render Articles =====
+function render() {
+  const grid = document.getElementById('articlesGrid');
+  let filtered = articles;
+
+  if (currentCategory !== 'all') {
+    if (currentCategory === 'local') {
+      filtered = filtered.filter(a => a.is_local);
+    } else {
+      filtered = filtered.filter(a => a.category === currentCategory || (currentCategory === 'scotland' && a.is_local));
+    }
+  }
+
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter(a =>
+      (a.title || '').toLowerCase().includes(q) ||
+      (a.summary || '').toLowerCase().includes(q) ||
+      (a.source || '').toLowerCase().includes(q)
+    );
+  }
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1">No articles found. Try a different filter or check back soon.</div>';
+    return;
+  }
+
+  // First article with image becomes the hero
+  let heroIdx = filtered.findIndex(a => a.image_url);
+  let html = '';
+  if (heroIdx >= 0 && !searchQuery && currentCategory === 'all') {
+    html += heroCardHTML(filtered[heroIdx]);
+    filtered = filtered.filter((_, i) => i !== heroIdx);
+  }
+  html += filtered.map(cardHTML).join('');
+  grid.innerHTML = html;
+}
+
+// ===== Render Stats =====
+function renderStats(stats) {
+  const chips = document.getElementById('statsChips');
+  chips.innerHTML =
+    '<div class="stat-chip"><span class="num">' + (stats.total || 0) + '</span><span class="lbl"> articles</span></div>' +
+    '<div class="stat-chip"><span class="num">' + (stats.local || 0) + '</span><span class="lbl"> local</span></div>';
+
+  const info = document.getElementById('refreshInfo');
+  const lastRefresh = stats.last_refresh ? timeAgo(stats.last_refresh) : 'never';
+  info.innerHTML = '<span class="pulse"></span> ' + lastRefresh;
+}
+
+// ===== Render Context Bar =====
+function renderContext(ctx) {
+  const bar = document.getElementById('contextBar');
+  const inner = document.getElementById('contextInner');
+  const parts = [];
+
+  // Weather
+  if (ctx.weather && ctx.weather.temp !== null) {
+    const [desc, icon] = weatherDesc(ctx.weather.weather_code);
+    parts.push(
+      '<div class="ctx-item"><span class="ctx-icon">' + icon + '</span>' +
+      '<span class="ctx-value">' + Math.round(ctx.weather.temp) + '\u00B0C</span>' +
+      '<span class="ctx-label">' + desc + '</span></div>'
+    );
+    if (ctx.weather.wind_speed) {
+      parts.push(
+        '<div class="ctx-item"><span class="ctx-icon">\uD83D\uDCA8</span>' +
+        '<span class="ctx-value">' + Math.round(ctx.weather.wind_speed) + '</span>' +
+        '<span class="ctx-label">mph wind</span></div>'
+      );
+    }
+    if (ctx.weather.wind_gusts && ctx.weather.wind_gusts > 30) {
+      parts.push(
+        '<div class="ctx-item"><span class="ctx-icon">\u26A0\uFE0F</span>' +
+        '<span class="ctx-value">' + Math.round(ctx.weather.wind_gusts) + '</span>' +
+        '<span class="ctx-label">mph gusts</span></div>'
+      );
+    }
+  }
+
+  // AQI
+  if (ctx.aqi && ctx.aqi.index) {
+    const aqiColors = { 'Low': 'var(--accent-green)', 'Moderate': 'var(--accent-amber)', 'High': 'var(--accent-red)', 'Very High': 'var(--accent-red)' };
+    const color = aqiColors[ctx.aqi.band] || 'var(--text)';
+    parts.push(
+      '<div class="ctx-item"><span class="ctx-icon">\uD83C\uDF3F</span>' +
+      '<span class="ctx-value" style="color:' + color + '">AQI ' + ctx.aqi.index + '</span>' +
+      '<span class="ctx-label">' + (ctx.aqi.band || '') + '</span></div>'
+    );
+  }
+
+  // Fuel
+  if (ctx.fuel && ctx.fuel.petrol) {
+    const pDir = ctx.fuel.petrol_change > 0 ? '\u2191' : ctx.fuel.petrol_change < 0 ? '\u2193' : '';
+    parts.push(
+      '<div class="ctx-item"><span class="ctx-icon">\u26FD</span>' +
+      '<span class="ctx-value">' + ctx.fuel.petrol + 'p</span>' +
+      '<span class="ctx-label">petrol ' + pDir + '</span></div>'
+    );
+  }
+
+  // Traffic
+  if (ctx.traffic_incidents > 0) {
+    parts.push(
+      '<div class="ctx-item"><span class="ctx-icon">\uD83D\uDE97</span>' +
+      '<span class="ctx-value" style="color:var(--accent-amber)">' + ctx.traffic_incidents + '</span>' +
+      '<span class="ctx-label">incidents</span></div>'
+    );
+  }
+
+  if (parts.length > 0) {
+    // Add Ayr label at front
+    inner.innerHTML =
+      '<div class="ctx-item"><span class="ctx-icon">\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC73\uDB40\uDC63\uDB40\uDC74\uDB40\uDC7F</span><span class="ctx-label" style="font-weight:600;color:var(--text)">Ayr, Scotland</span></div>' +
+      '<div class="ctx-sep"></div>' +
+      parts.join('<div class="ctx-sep"></div>');
+    bar.style.display = 'block';
+  }
+
+  // Warnings banner
+  if (ctx.warnings && ctx.warnings.length > 0) {
+    const banner = document.getElementById('warningBanner');
+    const track = document.getElementById('warningTrack');
+    const items = ctx.warnings.map(w => {
+      const link = w.link ? ' <a href="' + escHtml(w.link) + '" target="_blank">View details</a>' : '';
+      return '<span class="warn-icon">\u26A0\uFE0F</span> <span>MET OFFICE ' + escHtml(w.severity).toUpperCase() + ' WARNING: ' + escHtml(w.title) + ' \u2014 ' + escHtml(w.valid_from) + ' to ' + escHtml(w.valid_to) + link + '</span>';
+    });
+    // Duplicate for seamless scroll
+    const content = items.join(' &nbsp;&nbsp;&nbsp; ');
+    track.innerHTML = content + ' &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ' + content;
+    // Color by severity
+    const hasRed = ctx.warnings.some(w => w.severity === 'red');
+    const hasAmber = ctx.warnings.some(w => w.severity === 'amber');
+    banner.classList.remove('warning-red');
+    if (hasRed) banner.classList.add('warning-red');
+    banner.classList.add('active');
+  }
+}
+
+// ===== Fetch =====
+async function fetchArticles() {
+  try {
+    const resp = await fetch('/api/articles?limit=100');
+    const data = await resp.json();
+    articles = data.articles || [];
+    render();
+  } catch (e) {
+    console.error('Failed to fetch articles:', e);
+  }
+}
+
+async function fetchStats() {
+  try {
+    const resp = await fetch('/api/stats');
+    const data = await resp.json();
+    renderStats(data);
+  } catch (e) {
+    console.error('Failed to fetch stats:', e);
+  }
+}
+
+async function fetchContext() {
+  try {
+    const resp = await fetch('/api/context');
+    const data = await resp.json();
+    renderContext(data);
+  } catch (e) {
+    console.error('Failed to fetch context:', e);
+  }
+}
+
+async function refresh() {
+  await Promise.all([fetchArticles(), fetchStats(), fetchContext()]);
+}
+
+// ===== Events =====
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentCategory = btn.dataset.cat;
+    render();
+  });
+});
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  searchQuery = e.target.value.trim();
+  render();
+});
+
+// ===== Init =====
+refresh();
+setInterval(refresh, 5 * 60 * 1000);
+</script>
+</body>
+</html>
